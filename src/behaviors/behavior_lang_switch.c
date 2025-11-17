@@ -12,6 +12,7 @@
 
 #include <zmk/keymap.h>
 #include <zmk/behavior.h>
+#include <zmk/behavior_queue.h>
 #include <zmk/language.h>
 
 uint8_t current_language_state = 0;
@@ -56,7 +57,7 @@ static int lang_keymap_binding_pressed(struct zmk_behavior_binding *binding,
         }
         current_language_state = binding->param1;
         if (!config->no_layer_switch) {
-            zmk_keymap_layer_to(binding->param1);
+            zmk_keymap_layer_to(binding->param1, false);
         }
     }
     return ZMK_BEHAVIOR_OPAQUE;

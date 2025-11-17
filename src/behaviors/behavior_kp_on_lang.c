@@ -13,6 +13,7 @@
 
 #include <zmk/keymap.h>
 #include <zmk/behavior.h>
+#include <zmk/behavior_queue.h>
 #include <zmk/language.h>
 #include <zmk/events/keycode_state_changed.h>
 

@@ -542,7 +542,7 @@ static int sticky_key_position_state_changed_listener(const zmk_event_t *eh) {
                             target_layer_key->saved_layer_state = zmk_keymap_layer_state();
                             LOG_DBG("SKL: saved layer state: 0x%llx", target_layer_key->saved_layer_state);
                         }
-                        zmk_keymap_layer_to(target_layer_key->target_layer);
+                        zmk_keymap_layer_to(target_layer_key->target_layer, false);
                         LOG_DBG("SKL: position %d will use sticky key at pos %d for layer %d",
                                 ev->position, target_layer_key->position,
                                 target_layer_key->target_layer);

@@ -11,8 +11,13 @@ properties:
   bindings:
     type: phandle-array
     required: true
-  layers:
-    type: array
+    description: First binding is for English keycode, second for Russian keycode
+  en_layer:
+    type: int
     required: true
-  no-layer-switch:
-    type: boolean
+    description: Layer number for English layout
+  ru_layer:
+    type: int
+    required: true
+    description: Layer number for Russian layout
+

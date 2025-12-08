@@ -20,46 +20,68 @@ uint8_t current_language_state = 0;
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 struct behavior_lang_config {
-    struct zmk_behavior_binding behavior;
-    uint8_t n_languages;
-    bool no_layer_switch;
-    uint8_t layers[];
+    struct zmk_behavior_binding behavior_ru;  // переклюключение на русский
+    struct zmk_behavior_binding behavior_en;  // переключение на английский
+    uint8_t layer_en; // слой EN
+    uint8_t layer_ru; // слой RU
 };
 
 struct behavior_lang_data {};
 
 static int behavior_lang_init(const struct device *dev) { return 0; };
 
-static int get_number_of_switches(const struct behavior_lang_config *config, uint8_t target_lang) {
-    if (current_language_state == target_lang)
-        return 0;
-    if (current_language_state < target_lang) {
-        return target_lang - current_language_state;
-    } else {
-        return config->n_languages - current_language_state + target_lang;
-    }
-};
 
 static int lang_keymap_binding_pressed(struct zmk_behavior_binding *binding,
                                        struct zmk_behavior_binding_event event) {
+
     const struct device *dev = zmk_behavior_get_binding(binding->behavior_dev);
     const struct behavior_lang_config *config = dev->config;
 
-    const uint8_t number_of_switches = get_number_of_switches(config, binding->param1);
-    LOG_DBG("LANG current_lang %d target_lang %d number_of_switches %d", current_language_state,
-            binding->param1, number_of_switches);
-    // Switch needed number of times
-    if (number_of_switches > 0) {
-        for (uint8_t i = 0; i < number_of_switches; i++) {
-            zmk_behavior_queue_add(&event, config->behavior, true, 0);
-            zmk_behavior_queue_add(&event, config->behavior, false, 0);
-            LOG_DBG("LANG switch");
-        }
-        current_language_state = binding->param1;
-        if (!config->no_layer_switch) {
-            zmk_keymap_layer_to(binding->param1, false);
+    uint8_t target_language;
+
+    // Проверяем параметр (0 - английский, 1 - русский, любое другое значение - переключить на противоположный)
+    if (binding->param1 == 0) {
+        target_language = 0; // Английский
+    } 
+    else if (binding->param1 == 1) {
+        target_language = 1; // Русский
+    }
+    else {
+        // Любое другое значение - переключить на противоположный язык
+        if (current_language_state == 0) {
+            target_language = 1; // Переключить с английского на русский
+        } else {
+            target_language = 0; // Переключить с русского на английский
         }
     }
+    
+    // Если язык уже активен, ничего не делаем
+    if (current_language_state == target_language) {
+        LOG_DBG("Language %d is already active", target_language);
+        return ZMK_BEHAVIOR_OPAQUE;
+    }
+    
+    // Обновляем глобальную переменную
+    current_language_state = target_language;
+    
+    // Переключаем слой в зависимости от выбранного языка
+    if (target_language == 0) {
+        // Английский язык
+        zmk_keymap_layer_to(config->layer_en, false);
+        // Помещаем в очередь нажатие И отпускание 
+        zmk_behavior_queue_add(&event, config->behavior_en, true, 0);
+        zmk_behavior_queue_add(&event, config->behavior_en, false, 0);
+        LOG_DBG("Switched to English language, layer %d", config->layer_en);
+    } 
+    else {
+        // Русский язык
+        zmk_keymap_layer_to(config->layer_ru, false);
+        // Помещаем в очередь нажатие И отпускание 
+        zmk_behavior_queue_add(&event, config->behavior_ru, true, 0);
+        zmk_behavior_queue_add(&event, config->behavior_ru, false, 0);
+        LOG_DBG("Switched to Russian language, layer %d", config->layer_ru);
+    }
+
     return ZMK_BEHAVIOR_OPAQUE;
 }
 
@@ -75,10 +97,10 @@ static const struct behavior_driver_api behavior_lang_driver_api = {
 #define LANG_INST(n)                                                                               \
     static struct behavior_lang_data behavior_lang_data_##n = {};                                  \
     static struct behavior_lang_config behavior_lang_config_##n = {                                \
-        .behavior = ZMK_KEYMAP_EXTRACT_BINDING(0, DT_DRV_INST(n)),                                 \
-        .layers = DT_INST_PROP(n, layers),                                                         \
-        .n_languages = DT_INST_PROP_LEN(n, layers),                                                \
-        .no_layer_switch = DT_INST_PROP(n, no_layer_switch),                                       \
+        .behavior_en = ZMK_KEYMAP_EXTRACT_BINDING(0, DT_DRV_INST(n)),                              \
+        .behavior_ru = ZMK_KEYMAP_EXTRACT_BINDING(1, DT_DRV_INST(n)),                              \
+        .layer_en = DT_INST_PROP(n, en_layer),                                                     \
+        .layer_ru = DT_INST_PROP(n, ru_layer),                                                     \
     };                                                                                             \
     BEHAVIOR_DT_INST_DEFINE(n, behavior_lang_init, NULL, &behavior_lang_data_##n,                  \
                             &behavior_lang_config_##n, APPLICATION,                                \

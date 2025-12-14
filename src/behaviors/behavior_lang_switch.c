@@ -15,7 +15,6 @@
 #include <zmk/behavior_queue.h>
 #include <zmk/language.h>
 
-uint8_t current_language_state = 0;
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
@@ -48,7 +47,7 @@ static int lang_keymap_binding_pressed(struct zmk_behavior_binding *binding,
     }
     else {
         // Любое другое значение - переключить на противоположный язык
-        if (current_language_state == 0) {
+        if (get_language_state() == 0) {
             target_language = 1; // Переключить с английского на русский
         } else {
             target_language = 0; // Переключить с русского на английский
@@ -56,13 +55,13 @@ static int lang_keymap_binding_pressed(struct zmk_behavior_binding *binding,
     }
     
     // Если язык уже активен, ничего не делаем
-    if (current_language_state == target_language) {
+    if (get_language_state() == target_language) {
         LOG_DBG("Language %d is already active", target_language);
         return ZMK_BEHAVIOR_OPAQUE;
     }
     
     // Обновляем глобальную переменную
-    current_language_state = target_language;
+    set_language_state(target_language);
     
     // Переключаем слой в зависимости от выбранного языка
     if (target_language == 0) {

@@ -1,0 +1,5 @@
+description: Press-on-modifier behavior for counter functionality
+
+compatible: "zmk,behavior-modifier-press"
+
+include: one_param.yaml

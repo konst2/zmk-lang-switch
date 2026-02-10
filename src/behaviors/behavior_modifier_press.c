@@ -38,14 +38,16 @@ static int modifier_press_binding_pressed(struct zmk_behavior_binding *binding,
     // 1. Увеличиваем счётчик нажатых модификаторов
     increment_modifiers_counter();
 
-    // 2. запоминаем текущий язык клавиатуры
-    set_kb_language_before_modifiers(get_kb_language());
+    if (get_modifiers_counter() == 1) {
+        // 2. запоминаем текущий язык клавиатуры
+        set_kb_language_before_modifiers(get_kb_language());
 
-    if (get_modifiers_counter() == 1 && zmk_keymap_layer_active(config->layer_ru)) {
-;       // 3. переключаем язык клавиатуры и ОС на английский, меняем слой
-        set_kb_language(config->layer_en);
-        zmk_keymap_layer_to(config->layer_en, false);
-        switch_os_language(config->layer_en, config->layer_en, config->behavior_ru, config->behavior_en, event);
+        if (zmk_keymap_layer_active(config->layer_ru)) {
+        // 3. переключаем язык клавиатуры и ОС на английский, меняем слой
+            set_kb_language(config->layer_en);
+            zmk_keymap_layer_to(config->layer_en, false);
+            switch_os_language(config->layer_en, config->layer_en, config->behavior_ru, config->behavior_en, event);
+        }
     }
 
     // 4. Возвращаем нажатие самой клавиши сразу
